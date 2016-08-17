@@ -13,12 +13,12 @@ namespace EmpireCalc
             var calc = new WaveCalc();
 
             var commander = new Commander();
-            var wave1 = new Attack(commander, 20 * 20, 15 * 10, 0);
-            var wave2 = new Attack(commander, 0, 15 * 10, 15 * 30);
-            var wave3 = new Attack(commander, 20 * 20, 15 * 10, 0);
-            var wave4 = new Attack(commander, 20 * 20, 15 * 10, 0);
-            var wave5 = new Attack(commander, 0, 15 * 10, 15 * 30);
-            var wave6 = new Attack(commander, 20* 10, 0, 15 * 30);
+            var wave1 = new Attack(commander, 20 * 20, 15 * 10, 0, 130);
+            var wave2 = new Attack(commander, 0, 15 * 10, 15 * 30, 130);
+            var wave3 = new Attack(commander, 20 * 20, 15 * 10, 0, 130);
+            var wave4 = new Attack(commander, 20 * 20, 15 * 10, 0, 130);
+            var wave5 = new Attack(commander, 0, 15 * 10, 15 * 30, 130);
+            var wave6 = new Attack(commander, 20 * 10, 0, 15 * 30, 130);
 
             var castle = new Castle();
             var castelan = new Castelean();
@@ -64,7 +64,9 @@ namespace EmpireCalc
                 {
                     var defence = new Defence(castle, castelan, defenceTools, i);
                     var pwr = calc.Compute(defence, wave1);
-                    Console.Write("{0}\t", pwr);
+                    //Console.Write("{0}\t", pwr.DefencePower);
+                    //Console.Write("{0}\t", pwr.AttackLoss);
+                    Console.Write("{0}\t", pwr.DefenceLoss);
                 }
                 Console.Write("\r\n");
             }
@@ -75,12 +77,35 @@ namespace EmpireCalc
 
     public class WaveCalc
     {
-        public double Compute(Defence defence, Attack attack)
+        public WaveResult Compute(Defence defence, Attack attack)
         {
             var meleePwr = defence.MeleePower(attack.MeleePercent, attack.Wall, attack.Moat);
             var rangePwr = defence.RangePower(attack.RangePercent, attack.Wall, attack.Moat, attack.Range);
 
-            return meleePwr + rangePwr;
+            var result = new WaveResult();
+            result.AttackPower = attack.RangePower + attack.MeleePower;
+            result.DefencePower = meleePwr + rangePwr;
+
+            if (result.AttackPower < result.DefencePower)
+            {
+                result.DefenceLoss = result.AttackPower / defence.SoldierCount;
+                result.AttackLoss = attack.SoldierCount;
+            }
+            else
+            {
+                result.AttackLoss = result.DefencePower / attack.SoldierCount;
+                result.DefenceLoss = defence.SoldierCount;
+            }
+
+            return result;
         }
+    }
+
+    public class WaveResult
+    {
+        public double DefencePower { get; set; }
+        public double AttackPower { get; set; }
+        public double DefenceLoss { get; set; }
+        public double AttackLoss { get; set; }
     }
 }
